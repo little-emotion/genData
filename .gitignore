@@ -1,0 +1,9 @@
+# Apple OS X related
+**/.DS_Store
+
+# idea
+.idea/
+*.iml
+
+# for tar
+target/
