@@ -2,6 +2,7 @@
  * Created by stefanie on 26/07/2017.
  */
 import java.util.Random;
+import java.time.LocalDate;
 
 public class RandomNum {
 
@@ -15,17 +16,19 @@ public class RandomNum {
         return Math.abs(random.nextInt() % (max-min+1) + min);
     }
 
-    public static double getRandomDouble(double min, double max) {
-        return (min + Math.random() * (max - min));
+    public static float getRandomFloat(float min, float max) {
+
+        Random random = new Random();
+        return (random.nextFloat() * (max-min+1) + min);
     }
 
     public static void main(String[] argc) {
 
-        for (int i = 0; i < 10; i++) {
-            //System.out.println(r.getRandomLong(1,100));
-            System.out.println(RandomNum.getRandomDouble(1,5));
-        }
-        System.out.println(System.currentTimeMillis());
+//        for (int i = 0; i < 10; i++) {
+//            //System.out.println(r.getRandomLong(1,100));
+//            System.out.println(RandomNum.getRandomDouble(1,5));
+//        }
+//        System.out.println(System.currentTimeMillis());
     }
 
 }
