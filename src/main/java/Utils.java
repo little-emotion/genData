@@ -23,13 +23,13 @@ public class Utils {
     }
 
     public static String getPath(String timeseries) {
-        int lastPointIndex = timeseries.indexOf("s");
-        return timeseries.substring(0, lastPointIndex - 1);
+        int lastPointIndex = timeseries.lastIndexOf(".");
+        return timeseries.substring(0, lastPointIndex);
     }
 
     public static String getSensor(String timeseries) {
-        int lastPointIndex = timeseries.indexOf("s");
-        return timeseries.substring(lastPointIndex);
+        int lastPointIndex = timeseries.lastIndexOf(".");
+        return timeseries.substring(lastPointIndex + 1);
     }
 
     public static void main(String[] argc) {
@@ -37,7 +37,7 @@ public class Utils {
         String test = "INT32,RLE";
         String test2 = "root.excavator.Beijing.d1.s1";
         //System.out.println(splitPathAndSensor(test)[0] + " " + splitPathAndSensor(test)[1]);
-        System.out.println(getType(test) + " " + getEncode(test));
+        //System.out.println(getType(test) + " " + getEncode(test));
         System.out.println(getPath(test2) + " " + getSensor(test2));
 
     }

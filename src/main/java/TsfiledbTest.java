@@ -1,24 +1,26 @@
-import javax.rmi.CORBA.Util;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
 import java.util.*;
-
 
 /**
  * Created by stefanie on 25/07/2017.
  */
 public class TsfiledbTest {
 
-    public static final int TIME_INTERVAL = 1000;
-    public static final int TOTAL_DATA = 10;
+    public static final int TIME_INTERVAL = 100;
+    public static final int TOTAL_DATA = 100000;
+    public static final int ABNORMAL_MAX_INT = 0;
+    public static final int ABNORMAL_MIN_INT = -10;
+    public static final int ABNORMAL_MAX_FLOAT = 0;
+    public static final int ABNORMAL_MIN_FLOAT = -10;
+    public static final int ABNORMAL_FREQUENCY = 20000;
+    public static final int ABNORMAL_LENGTH = 10;
     public static final int MIN_INT = 0;
-    public static final int MAX_INT = 100;
-    public static final int MIN_FLOAT = 0;
-    public static final int MAX_FLOAT = 100;
+    public static final int MAX_INT = 30;
+    public static final int MIN_FLOAT = 30;
+    public static final int MAX_FLOAT = 40;
 
     public static void createTimeseries(Statement statement, HashMap<String, String> timeseriesMap) throws SQLException{
 
@@ -49,10 +51,17 @@ public class TsfiledbTest {
 
         String insertDataSql = "INSERT INTO <path> (timestamp, <sensor>) VALUES (<time>, <value>)";
         RandomNum r = new RandomNum();
+        int abnormalCount = 0;
+        int abnormalFlag = 1;
 
         for (int i = 0; i < TOTAL_DATA; i++) {
 
             long time = System.currentTimeMillis();
+
+            if (i % ABNORMAL_FREQUENCY == 30) {
+                abnormalFlag = 0;
+            }
+
             for(String key : timeseriesMap.keySet()) {
 
                 String type = Utils.getType(timeseriesMap.get(key));
@@ -61,13 +70,23 @@ public class TsfiledbTest {
                 String sql = "";
 
                 if(type.equals("INT32")) {
-                    int value = r.getRandomInt(MIN_INT, MAX_INT);
+                    int value;
+                    if (abnormalFlag == 0) {
+                        value = r.getRandomInt(ABNORMAL_MIN_INT, ABNORMAL_MAX_INT);
+                    } else {
+                        value = r.getRandomInt(MIN_INT, MAX_INT);
+                    }
                     sql = insertDataSql.replace("<path>", path)
                             .replace("<sensor>", sensor)
                             .replace("<time>", time+"")
                             .replace("<value>", value+"");
                 } else if (type.equals("FLOAT")) {
-                    float value = r.getRandomFloat(MIN_FLOAT, MAX_FLOAT);
+                    float value;
+                    if (abnormalFlag == 0) {
+                        value = r.getRandomFloat(ABNORMAL_MIN_FLOAT, ABNORMAL_MAX_FLOAT);
+                    } else {
+                        value = r.getRandomFloat(MIN_FLOAT, MAX_FLOAT);
+                    }
                     sql = insertDataSql.replace("<path>", path)
                             .replace("<sensor>", sensor)
                             .replace("<time>", time+"")
@@ -78,8 +97,15 @@ public class TsfiledbTest {
                 statement.execute(sql);
                 Thread.sleep(TIME_INTERVAL);
             }
-        }
 
+            if (abnormalFlag == 0) {
+                abnormalCount += 1;
+            }
+            if (abnormalCount >= ABNORMAL_LENGTH) {
+                abnormalCount = 0;
+                abnormalFlag = 1;
+            }
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -93,26 +119,29 @@ public class TsfiledbTest {
 //        long startTime = d.getTime();
 
         HashMap timeseriesMap =new HashMap<String, String>();
-        timeseriesMap.put("root.excavator.Beijing.d1.s1", "INT32,RLE");
-        timeseriesMap.put("root.excavator.Beijing.d1.s2", "FLOAT,RLE");
-        timeseriesMap.put("root.excavator.Beijing.d2.s1", "INT32,RLE");
-        timeseriesMap.put("root.excavator.Beijing.d2.s2", "FLOAT,RLE");
-        timeseriesMap.put("root.excavator.Shanghai.d3.s1", "INT32,RLE");
-        timeseriesMap.put("root.excavator.Shanghai.d3.s2", "FLOAT,RLE");
+        timeseriesMap.put("root.turbine.Beijing.d1.Speed", "INT32,RLE");
+        timeseriesMap.put("root.turbine.Beijing.d1.Energy", "FLOAT,RLE");
+        timeseriesMap.put("root.turbine.Beijing.d2.Speed", "INT32,RLE");
+        timeseriesMap.put("root.turbine.Beijing.d2.Energy", "FLOAT,RLE");
+        timeseriesMap.put("root.turbine.Shanghai.d3.Speed", "INT32,RLE");
+        timeseriesMap.put("root.turbine.Shanghai.d3.Energy", "FLOAT,RLE");
 
         ArrayList<String> storageGroupList = new ArrayList();
-        storageGroupList.add("root.excavator.Beijing.d1");
-        storageGroupList.add("root.excavator.Beijing.d2");
-        storageGroupList.add("root.excavator.Shanghai.d3");
+        storageGroupList.add("root.turbine.Beijing.d1");
+        storageGroupList.add("root.turbine.Beijing.d2");
+        storageGroupList.add("root.turbine.Shanghai.d3");
 
         try {
             Class.forName("cn.edu.thu.tsfiledb.jdbc.TsfileDriver");
             connection = DriverManager.getConnection("jdbc:tsfile://localhost:6667/", "root", "root");
             statement = connection.createStatement();
 
-            //createTimeseries(statement, timeseriesMap);
+            createTimeseries(statement, timeseriesMap);
             setStorageGroup(statement, storageGroupList);
             randomInsertData(statement, timeseriesMap);
+
+            statement.execute("merge");
+            statement.execute("close");
 
         } catch (Exception e) {
             e.printStackTrace();
