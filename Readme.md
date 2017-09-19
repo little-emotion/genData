@@ -2,14 +2,18 @@
 
 # 安装TsFile到本地
 > git clone git@github.com:thulab/tsfile.git
+
 > cd tsfile
+
 > mvn clean install -Dmaven.test.skip=true
 
 
 # 安装JDBC到本地
 
 > git clone git@github.com:thulab/iotdb-jdbc.git
+
 > cd iotdb-jdbc
+
 > mvn clean install -Dmaven.test.skip=true
 
 
