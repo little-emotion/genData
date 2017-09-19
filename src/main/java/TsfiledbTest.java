@@ -4,13 +4,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
+import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
+
 /**
  * Created by stefanie on 25/07/2017.
  */
 public class TsfiledbTest {
 
     public static final int TIME_INTERVAL = 100;
-    public static final int TOTAL_DATA = 100000;
+    public static final int TOTAL_DATA = 10000;
     public static final int ABNORMAL_MAX_INT = 0;
     public static final int ABNORMAL_MIN_INT = -10;
     public static final int ABNORMAL_MAX_FLOAT = 0;
@@ -132,7 +134,7 @@ public class TsfiledbTest {
         storageGroupList.add("root.turbine.Shanghai.d3");
 
         try {
-            Class.forName("cn.edu.thu.tsfiledb.jdbc.TsfileDriver");
+            Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
             connection = DriverManager.getConnection("jdbc:tsfile://localhost:6667/", "root", "root");
             statement = connection.createStatement();
 

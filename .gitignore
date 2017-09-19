@@ -1,9 +1,21 @@
+# Eclipse IDE files
+**/.classpath
+**/.project
+**/.settings/
+
+# intellj IDE files
+**/*.iml
+**/.idea/
+
 # Apple OS X related
 **/.DS_Store
 
-# idea
-.idea/
-*.iml
+# build generated
+**/target/
+**/build/
 
-# for tar
-target/
+# intermediately generated locally
+**/logs/
+**/lib/
+*.jar
+/target/

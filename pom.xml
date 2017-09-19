@@ -39,9 +39,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>cn.edu.thu</groupId>
-            <artifactId>tsfiledb-jdbc</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <groupId>cn.edu.tsinghua</groupId>
+            <artifactId>iotdb-jdbc</artifactId>
+            <version>0.1.2</version>
         </dependency>
     </dependencies>
 
