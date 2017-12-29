@@ -1,40 +1,72 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
-import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
-
 /**
  * Created by stefanie on 25/07/2017.
  */
-public class TsfiledbTest {
 
-    public static final int TIME_INTERVAL = 100;
-    public static final int TOTAL_DATA = 10000;
+public class IoTDBGenerateData {
+
+    public static final int TIME_INTERVAL = 0;
+    public static final int TOTAL_DATA = 400;
     public static final int ABNORMAL_MAX_INT = 0;
     public static final int ABNORMAL_MIN_INT = -10;
     public static final int ABNORMAL_MAX_FLOAT = 0;
     public static final int ABNORMAL_MIN_FLOAT = -10;
-    public static final int ABNORMAL_FREQUENCY = 20000;
-    public static final int ABNORMAL_LENGTH = 10;
+    public static final int ABNORMAL_FREQUENCY = Integer.MAX_VALUE;
+    public static final int ABNORMAL_LENGTH = 0;
     public static final int MIN_INT = 0;
-    public static final int MAX_INT = 30;
-    public static final int MIN_FLOAT = 30;
-    public static final int MAX_FLOAT = 40;
+    public static final int MAX_INT = 14;
+    public static final int MIN_FLOAT = 20;
+    public static final int MAX_FLOAT = 30;
+    public static final int STRING_LENGTH = 5;
+    public static final int BATCH_SQL = 1000;
+
+    public static HashMap generateTimeseriesMapFromFile(String inputFilePath) throws Exception{
+
+        HashMap timeseriesMap = new HashMap();
+
+        File file = new File(inputFilePath);
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        String line;
+        while ((line = reader.readLine()) != null) {
+
+            String timeseries = line.split(" ")[2];
+            String dataType = line.split("DATATYPE = ")[1].split(",")[0].trim();
+            String encodingType = line.split("ENCODING = ")[1].split(";")[0].trim();
+            //System.out.println(encodingType);
+            timeseriesMap.put(timeseries, dataType+","+encodingType);
+        }
+
+        return timeseriesMap;
+
+    }
 
     public static void createTimeseries(Statement statement, HashMap<String, String> timeseriesMap) throws SQLException{
 
         String createTimeseriesSql = "CREATE TIMESERIES <timeseries> WITH DATATYPE=<datatype>, ENCODING=<encode>";
+
+        int sqlCount = 0;
 
         for (String key : timeseriesMap.keySet()) {
             String properties = timeseriesMap.get(key);
             String sql = createTimeseriesSql.replace("<timeseries>", key)
                     .replace("<datatype>", Utils.getType(properties))
                     .replace("<encode>", Utils.getEncode(properties));
-            System.out.println(sql);
-            statement.execute(sql);
+
+            statement.addBatch(sql);
+            sqlCount++;
+            if (sqlCount >= BATCH_SQL) {
+                statement.executeBatch();
+                statement.clearBatch();
+                sqlCount = 0;
+            }
         }
     }
 
@@ -43,7 +75,7 @@ public class TsfiledbTest {
         String setStorageGroupSql = "SET STORAGE GROUP TO <prefixpath>";
         for (String str : storageGroupList) {
             String sql = setStorageGroupSql.replace("<prefixpath>", str);
-            System.out.println(sql);
+            //System.out.println(sql);
             statement.execute(sql);
         }
     }
@@ -56,11 +88,13 @@ public class TsfiledbTest {
         int abnormalCount = 0;
         int abnormalFlag = 1;
 
+        int sqlCount = 0;
+
         for (int i = 0; i < TOTAL_DATA; i++) {
 
             long time = System.currentTimeMillis();
 
-            if (i % ABNORMAL_FREQUENCY == 30) {
+            if (i % ABNORMAL_FREQUENCY == 250) {
                 abnormalFlag = 0;
             }
 
@@ -93,10 +127,24 @@ public class TsfiledbTest {
                             .replace("<sensor>", sensor)
                             .replace("<time>", time+"")
                             .replace("<value>", value+"");
+                } else if (type.equals("TEXT")) {
+                    String value;
+                    value = r.getRandomText(STRING_LENGTH);
+                    sql = insertDataSql.replace("<path>", path)
+                        .replace("<sensor>", sensor)
+                        .replace("<time>", time+"")
+                        .replace("<value>", "\"" + value+"\"");
                 }
 
-                System.out.println(sql);
-                statement.execute(sql);
+                //TODO: other data type
+                statement.addBatch(sql);
+                sqlCount++;
+                if (sqlCount >= BATCH_SQL) {
+                    statement.executeBatch();
+                    System.out.println("Batch execute " + BATCH_SQL + " sql.");
+                    statement.clearBatch();
+                    sqlCount = 0;
+                }
                 Thread.sleep(TIME_INTERVAL);
             }
 
@@ -115,35 +163,37 @@ public class TsfiledbTest {
         Connection connection = null;
         Statement statement = null;
 
-//        String dateString = "2017-07-27 17:45:00";
-//        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-//        Date d = f.parse(dateString);
-//        long startTime = d.getTime();
+//        HashMap timeseriesMap =new HashMap<String, String>();
+//        timeseriesMap.put("root.yanmoji.shenzhen.d2.axis1pos", "BOOLEAN, PLAIN");
+//        timeseriesMap.put("root.yanmoji.shenzhen.d2.axis2pos", "INT32,TS_2DIFF");
+//        timeseriesMap.put("root.yanmoji.shenzhen.d2.axis1vel", "INT64,RLE");
+//        timeseriesMap.put("root.yanmoji.shenzhen.d2.axis2vel", "FLOAT,GORILLA");
+//        timeseriesMap.put("root.yanmoji.shenzhen.d2.axis1torque", "BOOLEAN, RLE");
+//        timeseriesMap.put("root.yanmoji.shenzhen.d2.axis2torque", "FLOAT,RLE");
+//        timeseriesMap.put("root.yanmoji.shenzhen.d2.axis1set", "BOOLEAN, RLE");
+//        timeseriesMap.put("root.yanmoji.shenzhen.d2.axis2set", "FLOAT,RLE");
 
-        HashMap timeseriesMap =new HashMap<String, String>();
-        timeseriesMap.put("root.turbine.Beijing.d1.Speed", "INT32,RLE");
-        timeseriesMap.put("root.turbine.Beijing.d1.Energy", "FLOAT,RLE");
-        timeseriesMap.put("root.turbine.Beijing.d2.Speed", "INT32,RLE");
-        timeseriesMap.put("root.turbine.Beijing.d2.Energy", "FLOAT,RLE");
-        timeseriesMap.put("root.turbine.Shanghai.d3.Speed", "INT32,RLE");
-        timeseriesMap.put("root.turbine.Shanghai.d3.Energy", "FLOAT,RLE");
+        HashMap timeseriesMap = generateTimeseriesMapFromFile("/Users/stefanie/CodeRepository/TsFileDB-Doc/Project/际链/CreateTimeseries.txt");
 
         ArrayList<String> storageGroupList = new ArrayList();
-        storageGroupList.add("root.turbine.Beijing.d1");
-        storageGroupList.add("root.turbine.Beijing.d2");
-        storageGroupList.add("root.turbine.Shanghai.d3");
+        storageGroupList.add("root.vehicle_history");
+        storageGroupList.add("root.vehicle_alarm");
+        storageGroupList.add("root.vehicle_temp");
+        storageGroupList.add("root.range_event");
 
         try {
-            Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
+            Class.forName("cn.edu.tsinghua.iotdb.jdbc.TsfileDriver");
             connection = DriverManager.getConnection("jdbc:tsfile://localhost:6667/", "root", "root");
             statement = connection.createStatement();
 
-            createTimeseries(statement, timeseriesMap);
             setStorageGroup(statement, storageGroupList);
+            System.out.println("Finish set storage group.");
+            createTimeseries(statement, timeseriesMap);
+            System.out.println("Finish create timeseries.");
             randomInsertData(statement, timeseriesMap);
 
             statement.execute("merge");
-            statement.execute("close");
+            statement.execute("flush");
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -28,6 +28,19 @@ public class RandomNum {
         return (Math.abs(random.nextInt()) % frequency);
     }
 
+    public static String getRandomText(int length) {
+
+        String base = "abcdefghijklmnopqrstuvwxyz0123456789";
+        Random random = new Random();
+        String st = "";
+        for (int i = 0; i < length; i++) {
+            int number = random.nextInt(base.length());
+            st += base.charAt(number);
+        }
+        return st;
+
+    }
+
     public static void main(String[] argc) throws Exception {
 
 //        for (int i = 0; i < 10; i++) {
@@ -39,7 +52,9 @@ public class RandomNum {
 //            System.out.println(getAbnormalData(10));
 //            Thread.sleep(1000);
 //        }
-        System.out.println(Float.MAX_VALUE);
+        for (int i = 0; i < 10; i++) {
+            System.out.println(getRandomText(10));
+        }
     }
 
 }
