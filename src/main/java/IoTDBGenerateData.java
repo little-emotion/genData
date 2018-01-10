@@ -27,6 +27,7 @@ public class IoTDBGenerateData {
     public static final int MAX_FLOAT = 30;
     public static final int STRING_LENGTH = 5;
     public static final int BATCH_SQL = 1000;
+    public static ArrayList<String> storageGroupList = new ArrayList();
 
     public static HashMap generateTimeseriesMapFromFile(String inputFilePath) throws Exception{
 
@@ -41,7 +42,14 @@ public class IoTDBGenerateData {
             String dataType = line.split("DATATYPE = ")[1].split(",")[0].trim();
             String encodingType = line.split("ENCODING = ")[1].split(";")[0].trim();
             //System.out.println(encodingType);
-            timeseriesMap.put(timeseries, dataType+","+encodingType);
+            for(String group : storageGroupList){
+            	if(timeseries.contains(group)){
+            		timeseriesMap.put(timeseries, dataType+","+encodingType);
+            		break;
+            	}
+            }
+            	
+            
         }
 
         return timeseriesMap;
@@ -175,7 +183,7 @@ public class IoTDBGenerateData {
 
         HashMap timeseriesMap = generateTimeseriesMapFromFile("/Users/stefanie/CodeRepository/TsFileDB-Doc/Project/际链/CreateTimeseries.txt");
 
-        ArrayList<String> storageGroupList = new ArrayList();
+       
         storageGroupList.add("root.vehicle_history");
         storageGroupList.add("root.vehicle_alarm");
         storageGroupList.add("root.vehicle_temp");
