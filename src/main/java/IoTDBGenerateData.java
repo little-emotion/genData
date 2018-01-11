@@ -26,7 +26,7 @@ public class IoTDBGenerateData {
     public static final int MIN_FLOAT = 20;
     public static final int MAX_FLOAT = 30;
     public static final int STRING_LENGTH = 5;
-    public static final int BATCH_SQL = 1000;
+    public static final int BATCH_SQL = 5000;
     public static ArrayList<String> storageGroupList = new ArrayList();
 
     public static HashMap generateTimeseriesMapFromFile(String inputFilePath) throws Exception{
@@ -99,7 +99,7 @@ public class IoTDBGenerateData {
         int sqlCount = 0;
 
         for (int i = 0; i < TOTAL_DATA; i++) {
-
+            System.out.println("Execute " + i + " loops");
             long time = System.currentTimeMillis();
 
             if (i % ABNORMAL_FREQUENCY == 250) {
@@ -149,7 +149,7 @@ public class IoTDBGenerateData {
                 sqlCount++;
                 if (sqlCount >= BATCH_SQL) {
                     statement.executeBatch();
-                    System.out.println("Batch execute " + BATCH_SQL + " sql.");
+                    //System.out.println("Batch execute " + BATCH_SQL + " sql.");
                     statement.clearBatch();
                     sqlCount = 0;
                 }
