@@ -181,7 +181,7 @@ public class IoTDBGenerateData {
 //        timeseriesMap.put("root.yanmoji.shenzhen.d2.axis1set", "BOOLEAN, RLE");
 //        timeseriesMap.put("root.yanmoji.shenzhen.d2.axis2set", "FLOAT,RLE");
 
-        HashMap timeseriesMap = generateTimeseriesMapFromFile("/Users/stefanie/CodeRepository/TsFileDB-Doc/Project/际链/CreateTimeseries.txt");
+        HashMap timeseriesMap = generateTimeseriesMapFromFile("/home/hadoop/xuyi/CreateTimeseries.txt");
 
        
         storageGroupList.add("root.vehicle_history");
@@ -191,7 +191,7 @@ public class IoTDBGenerateData {
 
         try {
             Class.forName("cn.edu.tsinghua.iotdb.jdbc.TsfileDriver");
-            connection = DriverManager.getConnection("jdbc:tsfile://localhost:6667/", "root", "root");
+            connection = DriverManager.getConnection("jdbc:tsfile://192.168.130.18:6667/", "root", "root");
             statement = connection.createStatement();
 
             setStorageGroup(statement, storageGroupList);
