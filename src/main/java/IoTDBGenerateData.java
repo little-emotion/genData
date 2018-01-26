@@ -29,7 +29,7 @@ public class IoTDBGenerateData {
     public static final int BATCH_SQL = 5000;
     public static ArrayList<String> storageGroupList = new ArrayList();
     public static final int FIX_INTERVAL = 5000; 
-    public static final long START_TIME = 1516685984207L;
+    public static final long START_TIME = 1016685984207L;
     
     public static HashMap generateTimeseriesMapFromFile(String inputFilePath) throws Exception{
 
@@ -193,7 +193,7 @@ public class IoTDBGenerateData {
         HashMap timeseriesMap = generateTimeseriesMapFromFile("/home/hadoop/xuyi/CreateTimeseries.txt");
         try {
             Class.forName("cn.edu.tsinghua.iotdb.jdbc.TsfileDriver");
-            connection = DriverManager.getConnection("jdbc:tsfile://192.168.130.18:6667/", "root", "root");
+            connection = DriverManager.getConnection("jdbc:tsfile://192.168.130.19:6667/", "root", "root");
             statement = connection.createStatement();
 
             setStorageGroup(statement, storageGroupList);
